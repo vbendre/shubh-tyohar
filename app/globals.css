@@ -1,0 +1,122 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-amber-50 via-orange-50 to-rose-50 text-gray-900 min-h-screen;
+    @apply transition-colors duration-300;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dark body {
+    @apply from-gray-950 via-gray-900 to-gray-950 text-gray-100;
+  }
+
+  html {
+    @apply transition-colors duration-300;
+    -webkit-text-size-adjust: 100%;
+  }
+}
+
+@layer components {
+  .glass {
+    @apply backdrop-blur-xl bg-white/70 border border-white/20 shadow-lg;
+  }
+
+  .dark .glass {
+    @apply bg-gray-800/70 border-gray-700/30;
+  }
+
+  .glass-strong {
+    @apply backdrop-blur-2xl bg-white/90 border border-white/40 shadow-2xl;
+  }
+
+  .dark .glass-strong {
+    @apply bg-gray-800/90 border-gray-700/50;
+  }
+
+  .btn-primary {
+    @apply px-6 py-3 rounded-xl font-semibold text-white transition-all duration-200;
+    @apply hover:shadow-lg hover:brightness-110 active:scale-95;
+  }
+
+  .btn-secondary {
+    @apply px-5 py-2.5 rounded-xl font-medium transition-all duration-200;
+    @apply border-2 hover:shadow-md active:scale-95;
+  }
+
+  /* Mobile-friendly touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+  }
+
+  /* Safe area padding for notched phones */
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+@keyframes shimmer-slide {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) rotate(2deg);
+  }
+  66% {
+    transform: translateY(-4px) rotate(-1deg);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-amber-300/40 rounded-full;
+}
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-gray-600/40;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-amber-200 text-amber-900;
+}
+.dark ::selection {
+  @apply bg-amber-700 text-amber-100;
+}
+
+/* Horizontal scroll for filter pills on mobile */
+.scroll-pills {
+  @apply flex overflow-x-auto gap-2 pb-1;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.scroll-pills::-webkit-scrollbar {
+  display: none;
+}
