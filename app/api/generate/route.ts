@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
 
   const toneInstructions: Record<string, string> = {
     greeting:
-      "Make it warm, heartfelt, and beautifully written. 3-5 sentences. Around 100-120 words.",
-    joke: "Make it a culturally relevant, family-friendly joke with a clear punchline. Can include a short setup. Around 60-80 words.",
+      "Make it warm, heartfelt, and beautifully written. Use relevant emojis (🪔✨🎉🙏 etc.) to make it visually appealing. Format with line breaks between sentences for readability. 3-5 sentences. Around 80-100 words.",
+    joke: "Make it a culturally relevant, family-friendly joke with a clear punchline. Add fun emojis (😂🤣😄). Format with line breaks — setup on one line, punchline on another. Around 60-80 words.",
     whatsapp:
-      "Make it casual and fun with relevant emojis throughout. Ready to paste into WhatsApp. Around 80-100 words.",
+      "Make it casual, fun, and WhatsApp-ready. Use LOTS of emojis throughout (🎉✨🪔🙏💫🎊 etc.). Format with line breaks between lines for easy reading in WhatsApp. Start with a festive emoji line. Around 80-100 words.",
   };
 
   const recipientLine = recipient
@@ -70,7 +70,9 @@ Rules:
 - ${toneInstructions[contentType]}
 - Do NOT include any preamble, explanation, or meta-text like "Here's a message for you". Output ONLY the message itself.
 - Be creative and original. Do not use generic or cliché phrases.
-- IMPORTANT: Stay within 120 words maximum. Never end abruptly mid-sentence — always complete the thought.`;
+- ALWAYS include relevant emojis to make the message visually beautiful and festive.
+- Format with line breaks (one sentence or thought per line) so it reads well on mobile screens and WhatsApp.
+- IMPORTANT: Stay within 100 words maximum. Never end abruptly mid-sentence — always complete the thought.`;
 
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
