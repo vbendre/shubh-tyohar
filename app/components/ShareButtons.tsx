@@ -6,14 +6,12 @@ import { Festival } from "@/lib/festivals";
 interface Props {
   message: string;
   festival: Festival;
-  onGenerateAnother: () => void;
   onStartOver: () => void;
 }
 
 export default function ShareButtons({
   message,
   festival,
-  onGenerateAnother,
   onStartOver,
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -42,7 +40,7 @@ export default function ShareButtons({
 
   return (
     <div className="space-y-3 animate-fade-in mt-4">
-      {/* Primary: WhatsApp — big & prominent */}
+      {/* Primary: WhatsApp */}
       <button
         onClick={handleWhatsApp}
         className="w-full py-3.5 sm:py-4 px-6 rounded-2xl text-white font-bold text-base sm:text-lg
@@ -56,32 +54,19 @@ export default function ShareButtons({
         Share on WhatsApp
       </button>
 
-      {/* Secondary row */}
-      <div className="grid grid-cols-2 gap-2.5">
-        <button
-          onClick={handleCopy}
-          className="py-3 px-3 rounded-xl glass font-medium text-sm flex items-center justify-center gap-1.5
-                     transition-all duration-200 hover:shadow-md active:scale-[0.97] touch-target"
-          style={{
-            borderColor: copied ? "#16A34A" : festival.colors.primary + "30",
-            borderWidth: "2px",
-            color: copied ? "#16A34A" : undefined,
-          }}
-        >
-          {copied ? "✓ Copied!" : "📋 Copy"}
-        </button>
-
-        <button
-          onClick={onGenerateAnother}
-          className="py-3 px-3 rounded-xl font-medium text-sm text-white flex items-center justify-center gap-1.5
-                     transition-all duration-200 hover:shadow-md hover:brightness-110 active:scale-[0.97] touch-target"
-          style={{
-            background: `linear-gradient(135deg, ${festival.colors.primary}, ${festival.colors.secondary})`,
-          }}
-        >
-          🔄 New Variation
-        </button>
-      </div>
+      {/* Copy */}
+      <button
+        onClick={handleCopy}
+        className="w-full py-3 px-4 rounded-xl glass font-medium text-sm flex items-center justify-center gap-1.5
+                   transition-all duration-200 hover:shadow-md active:scale-[0.97] touch-target"
+        style={{
+          borderColor: copied ? "#16A34A" : festival.colors.primary + "30",
+          borderWidth: "2px",
+          color: copied ? "#16A34A" : undefined,
+        }}
+      >
+        {copied ? "✓ Copied!" : "📋 Copy to Clipboard"}
+      </button>
 
       {/* Start over */}
       <button
@@ -89,7 +74,7 @@ export default function ShareButtons({
         className="w-full text-center py-2 text-xs text-gray-400 dark:text-gray-500
                    hover:text-gray-600 dark:hover:text-gray-300 transition-colors touch-target"
       >
-        ← Start over with a different festival
+        ← Start over
       </button>
     </div>
   );

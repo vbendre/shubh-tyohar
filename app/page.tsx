@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Festival, festivals, festivalCategories, FestivalCategory, getUpcomingFestivals } from "@/lib/festivals";
-import { generateGreeting, GenerationError, ContentType, Language } from "@/lib/generator";
+import { generateGreeting, GenerationError, ContentType } from "@/lib/generator";
+import { languages } from "@/lib/languages";
 import GreetingCard from "./components/GreetingCard";
 import ShareButtons from "./components/ShareButtons";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -15,23 +16,18 @@ const contentTypes: { type: ContentType; emoji: string; label: string }[] = [
   { type: "whatsapp", emoji: "📱", label: "WhatsApp" },
 ];
 
-const languages: { id: Language; label: string; native: string; flag: string }[] = [
-  { id: "english", label: "English", native: "English", flag: "🌐" },
-  { id: "hindi", label: "Hindi", native: "हिन्दी", flag: "🇮🇳" },
-  { id: "marathi", label: "Marathi", native: "मराठी", flag: "🇮🇳" },
-  { id: "gujarati", label: "Gujarati", native: "ગુજરાતી", flag: "🇮🇳" },
-];
-
 export default function Home() {
   const [selectedFestival, setSelectedFestival] = useState<Festival | null>(null);
   const [contentType, setContentType] = useState<ContentType>("greeting");
-  const [language, setLanguage] = useState<Language>("english");
+  const [language, setLanguage] = useState("english");
   const [recipient, setRecipient] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [categoryFilter, setCategoryFilter] = useState<FestivalCategory | "all" | "upcoming">("upcoming");
+  // Track what was used to generate the current message
+  const [lastGenOptions, setLastGenOptions] = useState<{ festivalId: string; contentType: string; language: string; recipient: string } | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
@@ -79,6 +75,7 @@ export default function Home() {
         recipient: recipient.trim() || undefined,
       });
       setMessage(result);
+      setLastGenOptions({ festivalId: selectedFestival.id, contentType, language, recipient: recipient.trim() });
       setTimeout(() => resultRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
     } catch (err: unknown) {
       if (err instanceof GenerationError) {
@@ -96,9 +93,17 @@ export default function Home() {
   const c2 = selectedFestival?.colors.secondary || "#EA580C";
   const selectedLang = languages.find((l) => l.id === language)!;
 
+  // Did user change any options since the last generation?
+  const optionsChanged = !lastGenOptions
+    || !selectedFestival
+    || lastGenOptions.festivalId !== selectedFestival.id
+    || lastGenOptions.contentType !== contentType
+    || lastGenOptions.language !== language
+    || lastGenOptions.recipient !== recipient.trim();
+
   return (
     <div className="space-y-4 sm:space-y-5">
-      {/* ── Hero — adapts to selected festival ── */}
+      {/* ── Hero ── */}
       <div
         className="text-center rounded-2xl p-4 sm:p-5 transition-all duration-500"
         style={{
@@ -112,7 +117,7 @@ export default function Home() {
             <span className="text-3xl sm:text-4xl">{selectedFestival.emoji}</span>
             <div>
               <h2
-                className="text-xl sm:text-2xl font-bold text-gradient bg-gradient-to-r"
+                className="text-xl sm:text-2xl font-bold"
                 style={{
                   backgroundImage: `linear-gradient(to right, ${c1}, ${c2})`,
                   WebkitBackgroundClip: "text",
@@ -146,7 +151,6 @@ export default function Home() {
       >
         {/* Row 1: Content Type + Language dropdown */}
         <div className="flex items-center gap-2">
-          {/* Content Type pills */}
           <div className="flex gap-1 flex-1">
             {contentTypes.map((ct) => (
               <button
@@ -168,13 +172,10 @@ export default function Home() {
           <div className="relative">
             <select
               value={language}
-              onChange={(e) => setLanguage(e.target.value as Language)}
+              onChange={(e) => setLanguage(e.target.value)}
               className="appearance-none pl-3 pr-8 py-2 rounded-lg text-xs sm:text-sm font-medium
                          bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200
                          focus:outline-none focus:ring-2 transition-all cursor-pointer touch-target"
-              style={{
-                focusRingColor: c1,
-              } as React.CSSProperties}
             >
               {languages.map((lang) => (
                 <option key={lang.id} value={lang.id}>
@@ -182,7 +183,6 @@ export default function Home() {
                 </option>
               ))}
             </select>
-            {/* Custom dropdown arrow */}
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
@@ -191,7 +191,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Row 2: Recipient input */}
+        {/* Row 2: Recipient */}
         <div className="relative">
           <input
             type="text"
@@ -294,8 +294,8 @@ export default function Home() {
         </div>
       )}
 
-      {/* ── Generate Button — sticky on mobile ── */}
-      {selectedFestival && !message && !loading && (
+      {/* ── Generate Button — always visible when festival selected ── */}
+      {selectedFestival && !loading && (
         <div className="sticky bottom-3 z-40 px-2 animate-fade-in">
           <button
             onClick={doGenerate}
@@ -309,7 +309,9 @@ export default function Home() {
           >
             {countdown > 0
               ? `Wait ${countdown}s...`
-              : `✨ Generate ${selectedFestival.emoji} ${selectedFestival.name} ${selectedLang.native} ${contentTypes.find(c => c.type === contentType)?.label}`}
+              : message && !optionsChanged
+                ? `🔄 New Variation`
+                : `✨ Generate ${selectedFestival.emoji} ${selectedLang.native} ${contentTypes.find(c => c.type === contentType)?.label}`}
           </button>
         </div>
       )}
@@ -345,11 +347,11 @@ export default function Home() {
           <ShareButtons
             message={message}
             festival={selectedFestival}
-            onGenerateAnother={doGenerate}
             onStartOver={() => {
               setSelectedFestival(null);
               setMessage("");
               setError("");
+              setLastGenOptions(null);
             }}
           />
         </div>

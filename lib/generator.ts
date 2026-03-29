@@ -1,10 +1,9 @@
 export type ContentType = "greeting" | "joke" | "whatsapp";
-export type Language = "english" | "hindi" | "marathi" | "gujarati";
 
 interface GenerateParams {
   festivalId: string;
   contentType: ContentType;
-  language: Language;
+  language: string;
   recipient?: string;
 }
 

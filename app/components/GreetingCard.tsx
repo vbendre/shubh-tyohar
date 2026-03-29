@@ -1,21 +1,17 @@
 "use client";
 
 import { Festival } from "@/lib/festivals";
-import type { Language } from "@/lib/generator";
+import { getLanguageById, getFontClass } from "@/lib/languages";
 
 interface Props {
   message: string;
   festival: Festival;
-  language: Language;
+  language: string;
 }
 
 export default function GreetingCard({ message, festival, language }: Props) {
-  const fontClass =
-    language === "gujarati"
-      ? "font-gujarati"
-      : language === "english"
-        ? "font-poppins"
-        : "font-devanagari";
+  const lang = getLanguageById(language);
+  const fontClass = lang ? getFontClass(lang.script) : "font-poppins";
 
   return (
     <div className="animate-slide-up">

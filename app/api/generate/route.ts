@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getFestivalById } from "@/lib/festivals";
+import { getLanguageById } from "@/lib/languages";
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   let body: {
     festivalId: string;
     contentType: "greeting" | "joke" | "whatsapp";
-    language: "english" | "hindi" | "marathi" | "gujarati";
+    language: string;
     recipient?: string;
   };
 
@@ -30,26 +31,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unknown festival." }, { status: 400 });
   }
 
+  const lang = getLanguageById(language);
+  if (!lang) {
+    return NextResponse.json({ error: "Unsupported language." }, { status: 400 });
+  }
+
+  // Use localized name where available, otherwise English (Gemini handles the rest)
   const festivalName =
-    language === "hindi"
-      ? festival.nameHi
-      : language === "marathi"
-        ? festival.nameMr
-        : language === "gujarati"
-          ? festival.name // Use English name; Gemini knows the Gujarati equivalent
-          : festival.name;
+    language === "hindi" ? festival.nameHi
+    : language === "marathi" ? festival.nameMr
+    : festival.name;
 
   const contentTypeLabels: Record<string, string> = {
     greeting: "a heartfelt greeting/wish",
     joke: "a funny, family-friendly joke",
     whatsapp: "a casual WhatsApp-ready message with emojis",
-  };
-
-  const languageInstructions: Record<string, string> = {
-    english: "Write in English.",
-    hindi: "Write entirely in Hindi using Devanagari script (हिन्दी).",
-    marathi: "Write entirely in Marathi using Devanagari script (मराठी).",
-    gujarati: "Write entirely in Gujarati using Gujarati script (ગુજરાતી).",
   };
 
   const toneInstructions: Record<string, string> = {
@@ -69,7 +65,7 @@ export async function POST(request: NextRequest) {
 ${recipientLine}
 
 Rules:
-- ${languageInstructions[language]}
+- ${lang.instruction}
 - ${toneInstructions[contentType]}
 - Do NOT include any preamble, explanation, or meta-text like "Here's a message for you". Output ONLY the message itself.
 - Be creative and original. Do not use generic or cliché phrases.
@@ -82,7 +78,7 @@ Rules:
     const model = genAI.getGenerativeModel({
       model: process.env.GEMINI_MODEL || "gemini-2.0-flash-lite",
       systemInstruction:
-        "You are ShubhSandesh, a warm and culturally authentic festive greeting generator. You create heartfelt, original, and beautiful messages for Indian and global festivals and life occasions. You respect cultural nuances and write naturally in English, Hindi, Marathi, and Gujarati.",
+        "You are ShubhSandesh, a warm and culturally authentic festive greeting generator. You create heartfelt, original, and beautiful messages for Indian and global festivals and life occasions. You are fluent in all major Indian languages and respect cultural nuances. You write naturally in the requested language using the correct script.",
     });
 
     const result = await model.generateContent({
@@ -109,7 +105,6 @@ Rules:
     const rawMessage = err instanceof Error ? err.message : "Unknown error";
     console.error("Gemini API error:", rawMessage);
 
-    // Parse friendly error messages
     let userMessage: string;
     let retryAfter: number | null = null;
 
