@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   let body: {
     festivalId: string;
     contentType: "greeting" | "joke" | "whatsapp";
-    language: "english" | "hindi" | "marathi";
+    language: "english" | "hindi" | "marathi" | "gujarati";
     recipient?: string;
   };
 
@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
       ? festival.nameHi
       : language === "marathi"
         ? festival.nameMr
-        : festival.name;
+        : language === "gujarati"
+          ? festival.name // Use English name; Gemini knows the Gujarati equivalent
+          : festival.name;
 
   const contentTypeLabels: Record<string, string> = {
     greeting: "a heartfelt greeting/wish",
@@ -47,6 +49,7 @@ export async function POST(request: NextRequest) {
     english: "Write in English.",
     hindi: "Write entirely in Hindi using Devanagari script (हिन्दी).",
     marathi: "Write entirely in Marathi using Devanagari script (मराठी).",
+    gujarati: "Write entirely in Gujarati using Gujarati script (ગુજરાતી).",
   };
 
   const toneInstructions: Record<string, string> = {
@@ -79,7 +82,7 @@ Rules:
     const model = genAI.getGenerativeModel({
       model: process.env.GEMINI_MODEL || "gemini-2.0-flash-lite",
       systemInstruction:
-        "You are ShubhSandesh, a warm and culturally authentic festive greeting generator. You create heartfelt, original, and beautiful messages for Indian and global festivals and life occasions. You respect cultural nuances and write naturally in English, Hindi, and Marathi.",
+        "You are ShubhSandesh, a warm and culturally authentic festive greeting generator. You create heartfelt, original, and beautiful messages for Indian and global festivals and life occasions. You respect cultural nuances and write naturally in English, Hindi, Marathi, and Gujarati.",
     });
 
     const result = await model.generateContent({

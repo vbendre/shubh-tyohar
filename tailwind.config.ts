@@ -11,6 +11,7 @@ const config: Config = {
       fontFamily: {
         poppins: ["Poppins", "sans-serif"],
         devanagari: ["Tiro Devanagari Hindi", "serif"],
+        gujarati: ["Noto Sans Gujarati", "sans-serif"],
       },
       colors: {
         festive: {

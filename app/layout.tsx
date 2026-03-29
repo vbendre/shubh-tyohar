@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Poppins, Tiro_Devanagari_Hindi } from "next/font/google";
+import { Poppins, Tiro_Devanagari_Hindi, Noto_Sans_Gujarati } from "next/font/google";
 import ThemeToggle from "./components/ThemeToggle";
 import "./globals.css";
 
@@ -14,6 +14,13 @@ const devanagari = Tiro_Devanagari_Hindi({
   subsets: ["devanagari"],
   weight: "400",
   variable: "--font-devanagari",
+  display: "swap",
+});
+
+const gujarati = Noto_Sans_Gujarati({
+  subsets: ["gujarati"],
+  weight: ["400", "500", "600"],
+  variable: "--font-gujarati",
   display: "swap",
 });
 
@@ -61,7 +68,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${devanagari.variable}`}
+      className={`${poppins.variable} ${devanagari.variable} ${gujarati.variable}`}
       suppressHydrationWarning
     >
       <head>

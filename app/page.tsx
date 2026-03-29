@@ -19,6 +19,7 @@ const languages: { id: Language; label: string; native: string; flag: string }[]
   { id: "english", label: "English", native: "English", flag: "🌐" },
   { id: "hindi", label: "Hindi", native: "हिन्दी", flag: "🇮🇳" },
   { id: "marathi", label: "Marathi", native: "मराठी", flag: "🇮🇳" },
+  { id: "gujarati", label: "Gujarati", native: "ગુજરાતી", flag: "🇮🇳" },
 ];
 
 export default function Home() {

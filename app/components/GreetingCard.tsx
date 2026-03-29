@@ -10,7 +10,12 @@ interface Props {
 }
 
 export default function GreetingCard({ message, festival, language }: Props) {
-  const fontClass = language === "english" ? "font-poppins" : "font-devanagari";
+  const fontClass =
+    language === "gujarati"
+      ? "font-gujarati"
+      : language === "english"
+        ? "font-poppins"
+        : "font-devanagari";
 
   return (
     <div className="animate-slide-up">
