@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Poppins, Tiro_Devanagari_Hindi, Noto_Sans_Gujarati } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import ThemeToggle from "./components/ThemeToggle";
 import "./globals.css";
 
@@ -112,6 +113,7 @@ export default function RootLayout({
         <footer className="text-center py-4 px-3 text-xs text-gray-400 dark:text-gray-500 safe-bottom">
           ShubhSandesh — Made with ❤️ | AI-Powered Festival Greetings
         </footer>
+        <Analytics />
       </body>
     </html>
   );
