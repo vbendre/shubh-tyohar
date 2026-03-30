@@ -1,19 +1,17 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Festival, festivals, festivalCategories, FestivalCategory, getUpcomingFestivals } from "@/lib/festivals";
+import { Festival, festivals, festivalCategories, getUpcomingFestivals } from "@/lib/festivals";
 import { generateGreeting, GenerationError, ContentType } from "@/lib/generator";
 import { languages } from "@/lib/languages";
 import GreetingCard from "./components/GreetingCard";
 import ShareButtons from "./components/ShareButtons";
 import LoadingSpinner from "./components/LoadingSpinner";
 
-const categoryOrder: FestivalCategory[] = ["indian", "global", "life-events"];
-
 const contentTypes: { type: ContentType; emoji: string; label: string }[] = [
-  { type: "greeting", emoji: "🙏", label: "Greeting" },
-  { type: "joke", emoji: "😂", label: "Joke" },
-  { type: "whatsapp", emoji: "📱", label: "WhatsApp" },
+  { type: "greeting", emoji: "💌", label: "Wish" },
+  { type: "joke", emoji: "😄", label: "Joke" },
+  { type: "whatsapp", emoji: "💬", label: "WhatsApp" },
 ];
 
 export default function Home() {
@@ -25,7 +23,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [countdown, setCountdown] = useState(0);
-  const [categoryFilter, setCategoryFilter] = useState<FestivalCategory | "all" | "upcoming">("upcoming");
+  const [categoryFilter, setCategoryFilter] = useState<"indian" | "global" | "all" | "upcoming">("upcoming");
   // Track what was used to generate the current message
   const [lastGenOptions, setLastGenOptions] = useState<{ festivalId: string; contentType: string; language: string; recipient: string } | null>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
@@ -54,11 +52,15 @@ export default function Home() {
   const upcomingIds = new Set(upcoming.map((u) => u.id));
   const daysUntilMap = new Map(upcoming.map((u) => [u.id, u.daysUntil]));
 
+  // Life events are always shown separately — they're evergreen
+  const lifeEvents = festivals.filter((f) => f.category === "life-events");
+
+  // Festival grid excludes life events (they have their own section)
   const filteredFestivals =
     categoryFilter === "upcoming"
       ? upcoming
       : categoryFilter === "all"
-        ? festivals
+        ? festivals.filter((f) => f.category !== "life-events")
         : festivals.filter((f) => f.category === categoryFilter);
 
   const doGenerate = useCallback(async () => {
@@ -132,10 +134,10 @@ export default function Home() {
         ) : (
           <>
             <h2 className="text-xl sm:text-2xl font-bold text-gray-800 dark:text-gray-100">
-              Create Festival Greetings ✨
+              Create Beautiful Messages ✨
             </h2>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-              Pick a festival, choose your style, and generate!
+              Pick an occasion, choose your style, and share!
             </p>
           </>
         )}
@@ -163,7 +165,7 @@ export default function Home() {
                   }`}
                 style={contentType === ct.type ? { background: `linear-gradient(135deg, ${c1}, ${c2})` } : undefined}
               >
-                {ct.emoji} <span className="hidden sm:inline">{ct.label}</span>
+                {ct.emoji} {ct.label}
               </button>
             ))}
           </div>
@@ -206,16 +208,50 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── Category Tabs ── */}
+      {/* ── Life Events — Always Visible ── */}
+      <div>
+        <p className="text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-2 px-0.5">
+          🎉 Anytime Occasions
+        </p>
+        <div className="scroll-pills gap-2 pb-1">
+          {lifeEvents.map((event) => {
+            const isSelected = selectedFestival?.id === event.id;
+            return (
+              <button
+                key={event.id}
+                onClick={() => {
+                  setSelectedFestival(event);
+                  setMessage("");
+                  setError("");
+                }}
+                className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium
+                  transition-all duration-200 active:scale-95 touch-target
+                  ${isSelected
+                    ? "text-white shadow-lg"
+                    : "hover:shadow-md"
+                  }`}
+                style={{
+                  background: isSelected
+                    ? `linear-gradient(135deg, ${event.colors.primary}, ${event.colors.secondary})`
+                    : `linear-gradient(135deg, ${event.colors.primary}15, ${event.colors.secondary}15)`,
+                  color: isSelected ? "white" : undefined,
+                }}
+              >
+                <span className="text-base">{event.emoji}</span>
+                {event.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Festival Category Tabs ── */}
       <div className="scroll-pills px-0.5">
         {([
-          { key: "upcoming" as const, label: "🔥 Upcoming", count: upcoming.length },
-          { key: "all" as const, label: "All", count: null },
-          ...categoryOrder.map((k) => ({
-            key: k,
-            label: `${festivalCategories[k].emoji} ${festivalCategories[k].label}`,
-            count: null,
-          })),
+          { key: "upcoming" as const, label: `🔥 Upcoming${upcoming.length > 0 ? ` (${upcoming.length})` : ""}` },
+          { key: "all" as const, label: "All" },
+          { key: "indian" as const, label: `${festivalCategories.indian.emoji} Indian` },
+          { key: "global" as const, label: `${festivalCategories.global.emoji} Global` },
         ]).map((tab) => (
           <button
             key={tab.key}
@@ -232,15 +268,12 @@ export default function Home() {
             }
           >
             {tab.label}
-            {tab.count !== null && tab.count > 0 && (
-              <span className="ml-1 text-[10px] opacity-60">({tab.count})</span>
-            )}
           </button>
         ))}
       </div>
 
       {/* ── Festival Grid ── */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 pt-1">
         {filteredFestivals.map((festival) => {
           const isSelected = selectedFestival?.id === festival.id;
           const days = daysUntilMap.get(festival.id);
