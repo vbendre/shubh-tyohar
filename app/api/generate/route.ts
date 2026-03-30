@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getFestivalById } from "@/lib/festivals";
 import { getLanguageById } from "@/lib/languages";
+import { supabase } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   const apiKey = process.env.GOOGLE_GEMINI_API_KEY;
@@ -73,6 +74,26 @@ Rules:
 - Format with line breaks (one sentence or thought per line) so it reads well on mobile screens and WhatsApp.
 - IMPORTANT: Stay within 100 words maximum. Never end abruptly mid-sentence — always complete the thought.`;
 
+  // ── Cache lookup: try to return a cached variation ──
+  const recipientKey = (recipient || "").trim().toLowerCase();
+  try {
+    const { data: cached } = await supabase
+      .from("greeting_cache")
+      .select("message")
+      .eq("festival_id", festivalId)
+      .eq("content_type", contentType)
+      .eq("language", language)
+      .eq("recipient", recipientKey);
+
+    // Return a random cached message ~70% of the time if we have enough variations
+    if (cached && cached.length >= 3 && Math.random() < 0.7) {
+      const pick = cached[Math.floor(Math.random() * cached.length)];
+      return NextResponse.json({ message: pick.message, cached: true });
+    }
+  } catch {
+    // Cache miss or error — fall through to Gemini
+  }
+
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
@@ -99,6 +120,15 @@ Rules:
         { status: 500 }
       );
     }
+
+    // ── Store in cache (fire-and-forget) ──
+    supabase
+      .from("greeting_cache")
+      .upsert(
+        { festival_id: festivalId, content_type: contentType, language, recipient: recipientKey, message: text },
+        { onConflict: "festival_id,content_type,language,recipient,message" }
+      )
+      .then(() => {});
 
     return NextResponse.json({ message: text });
   } catch (err: unknown) {
